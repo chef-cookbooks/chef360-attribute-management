@@ -1,0 +1,14 @@
+.vagrant
+/cookbooks
+
+# Bundler
+bin/*
+.bundle/*
+
+.kitchen/
+.kitchen.local.yml
+
+*.lock.json
+Policyfile.lock.json
+
+.DS_Store

@@ -3,7 +3,7 @@ maintainer 'Rohit Kohli'
 maintainer_email 'rohit.kohli@progress.com'
 license 'All Rights Reserved'
 description 'Installs/Configures chef360-attribute-management'
-version '1.0.0'
+version '1.0.1'
 chef_version '>= 16.0'
 
 # The `issues_url` points to the location where issues for this cookbook are

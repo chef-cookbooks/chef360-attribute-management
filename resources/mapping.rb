@@ -33,15 +33,24 @@ action :map do
   # initialises an empty hash set
   # if new_resource.http_method == :PUT  &&
   captured_attrs = {}
+  
+  # Define the path to the NODE GUID file to extract NODE ID
 
-  # Define the path to the YAML file
-  yaml_file_path = '/hab/svc/courier-runner/config/config.yaml'
+  node_guid_path = if platform_family?('windows')
+                     'C:/hab/svc/node-management-agent/data/node_guid'
+                   else
+                     '/hab/svc/node-management-agent/data/node_guid'
+                   end
 
-  # Load and parse the YAML file
-  yaml_content = YAML.load_file(yaml_file_path)
-
-  # Extract the node_id
-  node_id = yaml_content['node_id']
+  # Check if the file exists
+  if ::File.exist?(node_guid_path)
+    node_id = ::File.read(node_guid_path).strip
+    if node_id.empty?
+      raise "Node ID is empty in the file at #{node_guid_path}"
+    end
+  else
+    raise "Node GUID file not found at #{node_guid_path}"
+  end
 
   # Log the extracted node_id to Chef logs
   log "Extracted node_id: #{node_id}" do

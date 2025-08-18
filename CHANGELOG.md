@@ -10,5 +10,4 @@ First release.
 Fixed the issue for http error 307
 
 ## 1.0.3
-Fixed the ssl connect issue from node 
-
+Fixed the ssl connect issue from node

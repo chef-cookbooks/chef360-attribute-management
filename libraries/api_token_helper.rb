@@ -9,7 +9,7 @@ require 'openssl'
 
 module Ohaiserver
   module ApiTokenHelperHelpers
-    def get_new_access_token(api_url, access_key, secret_key)
+    def get_new_access_token(api_url, access_key, secret_key, ssl_mode = 'verify_none')
       # Validate inputs
       raise "API URL cannot be nil or empty" if api_url.nil? || api_url.strip.empty?
       raise "Access key cannot be nil or empty" if access_key.nil? || access_key.strip.empty?
@@ -17,27 +17,27 @@ module Ohaiserver
       
       url = "#{api_url}/platform/user-accounts/v1/user/api-token/login"
       payload = { 'accessKey' => access_key, 'secretKey' => secret_key, 'state' => 'random-string' }
-      response = make_http_request(url, payload)
+      response = make_http_request(url, payload, nil, 'post', ssl_mode)
       data = JSON.parse(response.body)
       oauth_code = data['item']['oauthCode']
 
       url = "#{api_url}/platform/user-accounts/v1/user/api-token/jwt"
       payload = { 'oauthCode' => oauth_code, 'state' => 'random-string' }
-      response = make_http_request(url, payload)
+      response = make_http_request(url, payload, nil, 'post', ssl_mode)
       data = JSON.parse(response.body)
       access_token = data['item']['accessToken']
       refresh_token = data['item']['refreshToken']
       [access_token, refresh_token]
     end
 
-    def http_request(url, payload, access_token = nil, method = 'post')
-      response = make_http_request(url, payload, access_token, method)
+    def http_request(url, payload, access_token = nil, method = 'post', ssl_mode = 'verify_none')
+      response = make_http_request(url, payload, access_token, method, ssl_mode)
       JSON.parse(response.body)
     end
 
     private
 
-    def make_http_request(url, payload, access_token = nil, method = 'post')
+    def make_http_request(url, payload, access_token = nil, method = 'post', ssl_mode = 'verify_none')
       max_retries = 3
       attempts = 0
       
@@ -48,7 +48,10 @@ module Ohaiserver
         
         if uri.scheme == 'https'
           http.use_ssl = true
-          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          if ssl_mode == 'verify_peer'
+            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          end
         end
         
         request = case method.downcase
@@ -65,7 +68,7 @@ module Ohaiserver
         response = http.request(request)
         
         # Handle redirects manually
-        response = follow_redirects(response, payload, access_token, method) if response.is_a?(Net::HTTPRedirection)
+        response = follow_redirects(response, payload, access_token, method, ssl_mode) if response.is_a?(Net::HTTPRedirection)
         
         unless response.is_a?(Net::HTTPSuccess)
           Chef::Log.error("HTTP Error: #{response.code} #{response.message}")
@@ -87,7 +90,7 @@ module Ohaiserver
       end
     end
 
-    def follow_redirects(response, payload, access_token, method, max_redirects = 5)
+    def follow_redirects(response, payload, access_token, method, ssl_mode, max_redirects = 5)
       redirects = 0
       
       while response.is_a?(Net::HTTPRedirection) && redirects < max_redirects
@@ -105,7 +108,10 @@ module Ohaiserver
         
         if uri.scheme == 'https'
           http.use_ssl = true
-          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          if ssl_mode == 'verify_peer'
+            http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          end
         end
         
         request = case method.downcase

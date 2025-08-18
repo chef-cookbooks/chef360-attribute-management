@@ -136,10 +136,10 @@ action :map do
       uri = URI(api_endpoint)
       http = Net::HTTP.new(uri.hostname, uri.port)
       
-      # Configure SSL for HTTPS requests
+      # Configure SSL for HTTPS requests - default to VERIFY_NONE for enterprise environments
       if uri.scheme == 'https'
         http.use_ssl = true
-        http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
       
       request_class = Net::HTTP.const_get(new_resource.http_method.capitalize)

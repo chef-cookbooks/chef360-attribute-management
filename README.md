@@ -143,3 +143,7 @@ These samples are intended to serve as a reference, allowing you to adapt and cu
 `NM Attribute Names`: The `nm_attr_name` is user-defined and can be any name of your choosing. The corresponding value will be stored under this name in your node management attributes.
 
 `PUT vs PATCH`: Use `PUT` when you want to completely overwrite the existing data at the endpoint. Use `PATCH` when you want to update only specific fields without affecting the others.
+
+# Copyright
+
+See [COPYRIGHT.md](./COPYRIGHT.md).
